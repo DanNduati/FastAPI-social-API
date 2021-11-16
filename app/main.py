@@ -6,7 +6,7 @@ from pydantic import BaseModel
 # aplication instance
 app = FastAPI()
 
-# request json body pydantic model
+# request body pydantic model
 class Post(BaseModel):
     title: str
     content: str
