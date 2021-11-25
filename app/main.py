@@ -1,7 +1,7 @@
 import time
 from fastapi import FastAPI,Response,status,HTTPException
 from fastapi.params import Body, Depends
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 import app.config as my_config
 #import psycopg2
@@ -39,15 +39,15 @@ async def root():
     return{"message":f"{message}"}
 
 # get endpoint to get all posts
-@app.get("/posts")
+@app.get("/posts",response_model=List[schemas.PostResponse])
 async def get_posts(db: Session = Depends(get_db)):
     #cursor.execute("""SELECT * FROM posts""")
     #posts = cursor.fetchall()
     posts = db.query(models.Post).all()
-    return {"data":posts}
+    return posts
 
-# post endpoint to add a post
-@app.post("/posts",status_code=status.HTTP_201_CREATED)
+# post endpoint to create a post
+@app.post("/posts",status_code=status.HTTP_201_CREATED,response_model=schemas.PostResponse)
 async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db)):
     #cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING * """,(post.title,post.content,post.published))
     #new_post = cursor.fetchone()
