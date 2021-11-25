@@ -17,8 +17,6 @@ models.Base.metadata.create_all(bind=engine)
 # aplication instance
 app = FastAPI()
 
-
-
 '''
 # connect to postgress server instance and database with the psycopg2 adapter
 while True:
@@ -58,17 +56,17 @@ async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db)):
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {"data":new_post}
+    return new_post
 
 # get endpoint to get the latest post
-@app.get("/posts/latest")
+@app.get("/posts/latest",response_model=schemas.PostResponse)
 async def get_latest(db: Session = Depends(get_db)):
     latest_post = db.query(models.Post).order_by(models.Post.id.desc()).first()
-    return {"data":latest_post}
+    return latest_post
 
 
 # get endpoint to get a post by id as a path parameter
-@app.get("/posts/{post_id}")
+@app.get("/posts/{post_id}",response_model=schemas.PostResponse)
 async def get_post(post_id: int, response: Response,db: Session = Depends(get_db)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id= {str(post_id)}""")
     #test_post = cursor.fetchone()
@@ -76,7 +74,7 @@ async def get_post(post_id: int, response: Response,db: Session = Depends(get_db
     test_post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not test_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"post with id {post_id} was not found")
-    return {"data":test_post}
+    return test_post
 
 # post end point to delete a post
 @app.delete("/posts/{post_id}",status_code=status.HTTP_204_NO_CONTENT)
@@ -95,7 +93,7 @@ async def delete_post(post_id:int,db: Session=Depends(get_db)):
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 # put endpoint to update a post
-@app.put("/posts/{post_id}")
+@app.put("/posts/{post_id}",response_model=schemas.PostResponse)
 async def update_post(post_id:int,post:schemas.PostCreate,db:Session=Depends(get_db)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id={str(post_id)}""")
     #update_post = cursor.fetchone()
@@ -108,4 +106,5 @@ async def update_post(post_id:int,post:schemas.PostCreate,db:Session=Depends(get
         #conn.commit()
         update_post.update(post.dict(),synchronize_session=False)
         db.commit()
-        return{"data":update_post.first(),"message":f"Successfully updated post wihth id {post_id}"}
+        updated_post = update_post.first()
+        return updated_post
