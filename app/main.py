@@ -10,7 +10,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.functions import mode
 from . import models,schemas
 from .database import SessionLocal, engine, get_db
+from passlib.context import CryptContext
+from passlib.utils.decor import deprecated_function
 
+#password context
+ctx = CryptContext(schemes=['bcrypt'],deprecated='auto')
 #create our posts table if its not present
 models.Base.metadata.create_all(bind=engine)
 
@@ -108,3 +112,15 @@ async def update_post(post_id:int,post:schemas.PostCreate,db:Session=Depends(get
         db.commit()
         updated_post = update_post.first()
         return updated_post
+
+# post endpoint to create users
+@app.post('/users',status_code=status.HTTP_201_CREATED,response_model=schemas.UserResponse)
+async def create_user(user:schemas.UserCreate,db : Session = Depends(get_db)):
+    hashed_pwd = ctx.hash(user.password)
+    user.password = hashed_pwd
+    new_user = models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
