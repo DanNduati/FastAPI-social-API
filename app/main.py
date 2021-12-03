@@ -6,15 +6,11 @@ from pydantic import BaseModel
 import app.config as my_config
 #import psycopg2
 #from psycopg2.extras import RealDictCursor
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, session
 from sqlalchemy.sql.functions import mode
-from . import models,schemas
+from . import models,schemas,utils
 from .database import SessionLocal, engine, get_db
-from passlib.context import CryptContext
-from passlib.utils.decor import deprecated_function
 
-#password context
-ctx = CryptContext(schemes=['bcrypt'],deprecated='auto')
 #create our posts table if its not present
 models.Base.metadata.create_all(bind=engine)
 
@@ -114,13 +110,21 @@ async def update_post(post_id:int,post:schemas.PostCreate,db:Session=Depends(get
         return updated_post
 
 # post endpoint to create users
-@app.post('/users',status_code=status.HTTP_201_CREATED,response_model=schemas.UserResponse)
+@app.post("/users",status_code=status.HTTP_201_CREATED,response_model=schemas.UserResponse)
 async def create_user(user:schemas.UserCreate,db : Session = Depends(get_db)):
-    hashed_pwd = ctx.hash(user.password)
+    hashed_pwd = utils.hash(user.password)
     user.password = hashed_pwd
     new_user = models.User(**user.dict())
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-
     return new_user
+
+
+# get endpoint for user details
+@app.get("/users/{user_id}",response_model=schemas.UserResponse)
+def get_user(user_id: int,db: session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=F"User with id {user_id} not found")
+    return user
