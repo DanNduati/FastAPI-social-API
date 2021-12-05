@@ -1,7 +1,5 @@
 from pydantic import BaseModel,EmailStr
 from datetime import datetime
-from sqlalchemy import orm
-from app.models import User
 
 #posts schemas
 # request body pydantic model
