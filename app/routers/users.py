@@ -4,22 +4,25 @@ from sqlalchemy.orm import session
 from .. import utils,schemas,models
 from ..database import get_db
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/users",
+    tags=['Users']
+)
 
 # post endpoint to create users
-@router.post("/users",status_code=status.HTTP_201_CREATED,response_model=schemas.UserResponse)
+@router.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.UserResponse)
 async def create_user(user:schemas.UserCreate,db : session = Depends(get_db)):
     hashed_pwd = utils.hash(user.password)
     user.password = hashed_pwd
     new_user = models.User(**user.dict())
-    db.add(new_user)
+    db.add(new_user)    
     db.commit()
     db.refresh(new_user)
     return new_user
 
 
 # get endpoint for user details
-@router.get("/users/{user_id}",response_model=schemas.UserResponse)
+@router.get("/{user_id}",response_model=schemas.UserResponse)
 def get_user(user_id: int,db: session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:

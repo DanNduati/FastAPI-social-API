@@ -6,10 +6,13 @@ from ..database import get_db
 from .. import models,schemas
 
 #create a router object
-router = APIRouter()
+router = APIRouter(
+    prefix="/posts",
+    tags=['Posts']
+)
 
 # get endpoint to get all posts
-@router.get("/posts",response_model=List[schemas.PostResponse])
+@router.get("/",response_model=List[schemas.PostResponse])
 async def get_posts(db: Session = Depends(get_db)):
     #cursor.execute("""SELECT * FROM posts""")
     #posts = cursor.fetchall()
@@ -17,7 +20,7 @@ async def get_posts(db: Session = Depends(get_db)):
     return posts
 
 # post endpoint to create a post
-@router.post("/posts",status_code=status.HTTP_201_CREATED,response_model=schemas.PostResponse)
+@router.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.PostResponse)
 async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db)):
     #cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING * """,(post.title,post.content,post.published))
     #new_post = cursor.fetchone()
@@ -29,14 +32,14 @@ async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db)):
     return new_post
 
 # get endpoint to get the latest post
-@router.get("/posts/latest",response_model=schemas.PostResponse)
+@router.get("/latest",response_model=schemas.PostResponse)
 async def get_latest(db: Session = Depends(get_db)):
     latest_post = db.query(models.Post).order_by(models.Post.id.desc()).first()
     return latest_post
 
 
 # get endpoint to get a post by id as a path parameter
-@router.get("/posts/{post_id}",response_model=schemas.PostResponse)
+@router.get("/{post_id}",response_model=schemas.PostResponse)
 async def get_post(post_id: int, response: Response,db: Session = Depends(get_db)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id= {str(post_id)}""")
     #test_post = cursor.fetchone()
@@ -47,7 +50,7 @@ async def get_post(post_id: int, response: Response,db: Session = Depends(get_db
     return test_post
 
 # post end point to delete a post
-@router.delete("/posts/{post_id}",status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{post_id}",status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(post_id:int,db: Session=Depends(get_db)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id={str(post_id)}""")
     #post = cursor.fetchone()
@@ -63,7 +66,7 @@ async def delete_post(post_id:int,db: Session=Depends(get_db)):
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 # put endpoint to update a post
-@router.put("/posts/{post_id}",response_model=schemas.PostResponse)
+@router.put("/{post_id}",response_model=schemas.PostResponse)
 async def update_post(post_id:int,post:schemas.PostCreate,db:Session=Depends(get_db)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id={str(post_id)}""")
     #update_post = cursor.fetchone()
