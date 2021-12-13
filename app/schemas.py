@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel,EmailStr
 from datetime import datetime
 
@@ -37,3 +38,12 @@ class UserResponse(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+#access token schema
+class Token(BaseModel):
+    access_token:str
+    token_type:str
+
+#access token payload schema
+class TokenData(BaseModel):
+    id:Optional[str] = None
