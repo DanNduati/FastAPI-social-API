@@ -13,7 +13,7 @@ router = APIRouter(
 
 # get endpoint to get all posts
 @router.get("/",response_model=List[schemas.PostResponse])
-async def get_posts(db: Session = Depends(get_db)):
+async def get_posts(db: Session = Depends(get_db),user_id: int = Depends(oauth2.get_current_user)):
     #cursor.execute("""SELECT * FROM posts""")
     #posts = cursor.fetchall()
     posts = db.query(models.Post).all()
@@ -25,7 +25,6 @@ async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db),use
     #cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING * """,(post.title,post.content,post.published))
     #new_post = cursor.fetchone()
     #conn.commit()
-    print(user_id)
     new_post = models.Post(**post.dict())
     db.add(new_post)
     db.commit()
@@ -34,14 +33,14 @@ async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db),use
 
 # get endpoint to get the latest post
 @router.get("/latest",response_model=schemas.PostResponse)
-async def get_latest(db: Session = Depends(get_db)):
+async def get_latest(db: Session = Depends(get_db),user_id: int = Depends(oauth2.get_current_user)):
     latest_post = db.query(models.Post).order_by(models.Post.id.desc()).first()
     return latest_post
 
 
 # get endpoint to get a post by id as a path parameter
 @router.get("/{post_id}",response_model=schemas.PostResponse)
-async def get_post(post_id: int, response: Response,db: Session = Depends(get_db)):
+async def get_post(post_id: int, response: Response,db: Session = Depends(get_db),user_id: int = Depends(oauth2.get_current_user)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id= {str(post_id)}""")
     #test_post = cursor.fetchone()
     #test_post = db.query(models.Post).get(post_id)
@@ -52,7 +51,7 @@ async def get_post(post_id: int, response: Response,db: Session = Depends(get_db
 
 # post end point to delete a post
 @router.delete("/{post_id}",status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(post_id:int,db: Session=Depends(get_db)):
+async def delete_post(post_id:int,db: Session=Depends(get_db),user_id: int = Depends(oauth2.get_current_user)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id={str(post_id)}""")
     #post = cursor.fetchone()
     post = db.query(models.Post).filter(models.Post.id == post_id)
@@ -68,7 +67,7 @@ async def delete_post(post_id:int,db: Session=Depends(get_db)):
 
 # put endpoint to update a post
 @router.put("/{post_id}",response_model=schemas.PostResponse)
-async def update_post(post_id:int,post:schemas.PostCreate,db:Session=Depends(get_db)):
+async def update_post(post_id:int,post:schemas.PostCreate,db:Session=Depends(get_db),user_id: int = Depends(oauth2.get_current_user)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id={str(post_id)}""")
     #update_post = cursor.fetchone()
     update_post = db.query(models.Post).filter(models.Post.id==post_id)
