@@ -25,7 +25,8 @@ async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db),cur
     #cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING * """,(post.title,post.content,post.published))
     #new_post = cursor.fetchone()
     #conn.commit()
-    new_post = models.Post(**post.dict())
+    #add the user_id from the token 
+    new_post = models.Post(user_id=current_user.id,**post.dict())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -54,30 +55,36 @@ async def get_post(post_id: int, response: Response,db: Session = Depends(get_db
 async def delete_post(post_id:int,db: Session=Depends(get_db),current_user: int = Depends(oauth2.get_current_user)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id={str(post_id)}""")
     #post = cursor.fetchone()
-    post = db.query(models.Post).filter(models.Post.id == post_id)
-    if post.first() == None:
+    post_query = db.query(models.Post).filter(models.Post.id == post_id)
+    post = post_query.first()
+    if post == None:
         raise(HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"post with id: {post_id} was not found"))
-    else:
-        #delete post
-        #cursor.execute(F"""DELETE FROM posts WHERE id={str(post_id)}""")
-        #conn.commit()
-        post.delete(synchronize_session=False)
-        db.commit()
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    #check to see if the post belongs to the current user before deletion
+    if post.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Not authorized to perform action on this post")
+    #delete post
+    #cursor.execute(F"""DELETE FROM posts WHERE id={str(post_id)}""")
+    #conn.commit()
+    post_query.delete(synchronize_session=False)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 # put endpoint to update a post
 @router.put("/{post_id}",response_model=schemas.PostResponse)
 async def update_post(post_id:int,post:schemas.PostCreate,db:Session=Depends(get_db),current_user: int = Depends(oauth2.get_current_user)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id={str(post_id)}""")
     #update_post = cursor.fetchone()
-    update_post = db.query(models.Post).filter(models.Post.id==post_id)
-    if not update_post.first():
+    post_query = db.query(models.Post).filter(models.Post.id==post_id)
+    u_post = post_query.first()
+    if not u_post:
         raise(HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"post with id: {post_id} was not found"))
-    else:
-        #cursor.execute("""UPDATE posts SET title= %s, content=%s, published=%s WHERE id=%s RETURNING *""",(post.title,post.content,post.published,str(post_id)))
-        #updated_post = cursor.fetchone()
-        #conn.commit()
-        update_post.update(post.dict(),synchronize_session=False)
-        db.commit()
-        updated_post = update_post.first()
-        return updated_post
+    #check to see if the post belongs to the current user before update
+    if u_post.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Not authorized to perform action on this post")
+    #cursor.execute("""UPDATE posts SET title= %s, content=%s, published=%s WHERE id=%s RETURNING *""",(post.title,post.content,post.published,str(post_id)))
+    #updated_post = cursor.fetchone()
+    #conn.commit()
+    post_query.update(post.dict(),synchronize_session=False)
+    db.commit()
+    updated_post = post_query.first()
+    return updated_post
