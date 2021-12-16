@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Boolean, Integer, String, TIMESTAMP
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import false,func, null
 from sqlalchemy.sql.schema import ForeignKey
 from .database import Base
@@ -12,6 +13,7 @@ class Post(Base):
     published = Column(Boolean,nullable=False,server_default='TRUE')
     created_at = Column(TIMESTAMP(timezone=True),nullable=False,server_default=func.now())
     user_id = Column(Integer,ForeignKey('users.id',ondelete="CASCADE"),nullable=False)
+    owner = relationship("User")
 
     def __repr__(self) -> str:
         return F"Post(s): {self.id} {self.title} {self.content} {self.published}"
