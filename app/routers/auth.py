@@ -6,7 +6,7 @@ from ..database import get_db
 from .. import schemas,models,utils,oauth2
 
 router = APIRouter(
-    tags=["auth"]
+    tags=["Auth"]
 )
 
 @router.post("/login",response_model=schemas.Token)
