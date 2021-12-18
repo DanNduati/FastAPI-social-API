@@ -29,7 +29,16 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = dotenv_path
-        env_file_encoding = 'utf-8'        
+        env_file_encoding = 'utf-8'
+        @classmethod
+        def customise_sources(
+                cls,
+                init_settings: SettingsSourceCallable,
+                env_settings: SettingsSourceCallable,
+                file_secret_settings: SettingsSourceCallable,
+            ) -> Tuple[SettingsSourceCallable, ...]:
+                return env_settings,init_settings,file_secret_settings
+        
 
 settings = Settings(_env_file=dotenv_path, _env_file_encoding='utf-8')
 print(settings.dict())
