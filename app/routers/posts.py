@@ -1,6 +1,6 @@
 from fastapi import Response,status,HTTPException, APIRouter
 from fastapi.params import  Depends
-from typing import List
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import models,schemas,oauth2
@@ -13,10 +13,10 @@ router = APIRouter(
 
 # get endpoint to get all posts
 @router.get("/",response_model=List[schemas.PostResponse])
-async def get_posts(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_user)):
+async def get_posts(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_user),limit: Optional[int]=10, skip: Optional[int]=0,search: Optional[str] = ""):
     #cursor.execute("""SELECT * FROM posts""")
     #posts = cursor.fetchall()
-    posts = db.query(models.Post).all()
+    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return posts
 
 # post endpoint to create a post
