@@ -1,6 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel,EmailStr
 from datetime import datetime
+from pydantic.types import conint
 
 #posts schemas
 # request body pydantic model
@@ -55,3 +56,8 @@ class Token(BaseModel):
 #access token payload schema
 class TokenData(BaseModel):
     id:Optional[str] = None
+
+#votes schema
+class Vote(BaseModel):
+    post_id: int
+    direction: conint(le=1)#bool
