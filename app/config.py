@@ -41,4 +41,4 @@ class Settings(BaseSettings):
         
 
 settings = Settings(_env_file=dotenv_path, _env_file_encoding='utf-8')
-print(settings.dict())
+#print(settings.dict())
