@@ -6,3 +6,6 @@ select posts.id as post_id, votes.* from posts left join votes on posts.id = vot
 select posts.id, count(votes.post_id) from posts left join votes on posts.id = votes.post_id group by posts.id;
 /*order*/
 select posts.id as post_id, count(votes.post_id) as vote_count from posts left join votes on posts.id = votes.post_id group by posts.id order by(vote_count) desc;
+select posts.*, count(votes.post_id) as vote_count from posts left join votes on posts.id = votes.post_id group by posts.id order by(vote_count) desc;
+/*get the vote count for a specific posts*/
+select posts.id as post_id, count(votes.post_id) as vote_count from posts left join votes on posts.id = votes.post_id where posts.id =1 group by posts.id;
