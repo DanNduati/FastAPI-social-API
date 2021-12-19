@@ -2,6 +2,7 @@ from fastapi import Response,status,HTTPException, APIRouter
 from fastapi.params import  Depends
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.functions import func
 from ..database import get_db
 from .. import models,schemas,oauth2
 
@@ -12,12 +13,14 @@ router = APIRouter(
 )
 
 # get endpoint to get all posts
-@router.get("/",response_model=List[schemas.PostResponse])
+#@router.get("/",response_model=List[schemas.PostResponse])
+@router.get("/",response_model=List[schemas.PostOut])
 async def get_posts(db: Session = Depends(get_db),current_user: dict = Depends(oauth2.get_current_user),limit: Optional[int]=10, skip: Optional[int]=0,search: Optional[str] = ""):
     #cursor.execute("""SELECT * FROM posts""")
     #posts = cursor.fetchall()
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    return posts
+    #posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    results = db.query(models.Post,func.count(models.Vote.post_id).label('votes')).join(models.Vote,models.Vote.post_id == models.Post.id,isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    return results
 
 # post endpoint to create a post
 @router.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.PostResponse)
@@ -33,19 +36,19 @@ async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db),cur
     return new_post
 
 # get endpoint to get the latest post
-@router.get("/latest",response_model=schemas.PostResponse)
+@router.get("/latest",response_model=schemas.PostOut)
 async def get_latest(db: Session = Depends(get_db),current_user: dict = Depends(oauth2.get_current_user)):
-    latest_post = db.query(models.Post).order_by(models.Post.id.desc()).first()
+    latest_post = db.query(models.Post,func.count(models.Vote.post_id).label('votes')).join(models.Vote,models.Vote.post_id == models.Post.id,isouter=True).group_by(models.Post.id).order_by(models.Post.id.desc()).first()
     return latest_post
 
 
-# get endpoint to get a post by id as a path parameter
-@router.get("/{post_id}",response_model=schemas.PostResponse)
+# get endpoint to get a post by id
+@router.get("/{post_id}",response_model=schemas.PostOut)
 async def get_post(post_id: int, response: Response,db: Session = Depends(get_db),current_user: dict = Depends(oauth2.get_current_user)):
     #cursor.execute(F"""SELECT * FROM posts WHERE id= {str(post_id)}""")
     #test_post = cursor.fetchone()
     #test_post = db.query(models.Post).get(post_id)
-    test_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    test_post = db.query(models.Post,func.count(models.Vote.post_id).label('votes')).join(models.Vote,models.Vote.post_id == models.Post.id,isouter=True).group_by(models.Post.id).filter(models.Post.id == post_id).first()
     if not test_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"post with id {post_id} was not found")
     return test_post
