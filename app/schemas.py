@@ -43,6 +43,12 @@ class PostResponse(PostBase):
         # or any other arbitrary object with attributes
         orm_mode = True
 
+class PostOut(BaseModel):
+    Post : PostResponse
+    votes: int
+    class Config:
+        orm_mode = True
+
 #user auth schema
 class UserLogin(BaseModel):
     email: EmailStr
