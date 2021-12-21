@@ -16,6 +16,9 @@ router = APIRouter(
 #@router.get("/",response_model=List[schemas.PostResponse])
 @router.get("/",response_model=List[schemas.PostOut])
 async def get_posts(db: Session = Depends(get_db),current_user: dict = Depends(oauth2.get_current_user),limit: Optional[int]=10, skip: Optional[int]=0,search: Optional[str] = ""):
+    """
+    Get all posts
+    """
     #cursor.execute("""SELECT * FROM posts""")
     #posts = cursor.fetchall()
     #posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
@@ -25,6 +28,9 @@ async def get_posts(db: Session = Depends(get_db),current_user: dict = Depends(o
 # post endpoint to create a post
 @router.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.PostResponse)
 async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db),current_user: dict = Depends(oauth2.get_current_user)):
+    """
+    Create a post
+    """
     #cursor.execute("""INSERT INTO posts (title,content,published) VALUES (%s,%s,%s) RETURNING * """,(post.title,post.content,post.published))
     #new_post = cursor.fetchone()
     #conn.commit()
@@ -38,6 +44,9 @@ async def create_posts(post:schemas.PostCreate,db: Session = Depends(get_db),cur
 # get endpoint to get the latest post
 @router.get("/latest",response_model=schemas.PostOut)
 async def get_latest(db: Session = Depends(get_db),current_user: dict = Depends(oauth2.get_current_user)):
+    """
+    Get the latest post
+    """
     latest_post = db.query(models.Post,func.count(models.Vote.post_id).label('votes')).join(models.Vote,models.Vote.post_id == models.Post.id,isouter=True).group_by(models.Post.id).order_by(models.Post.id.desc()).first()
     return latest_post
 
@@ -45,6 +54,7 @@ async def get_latest(db: Session = Depends(get_db),current_user: dict = Depends(
 # get endpoint to get a post by id
 @router.get("/{post_id}",response_model=schemas.PostOut)
 async def get_post(post_id: int, response: Response,db: Session = Depends(get_db),current_user: dict = Depends(oauth2.get_current_user)):
+    """Get post by id"""
     #cursor.execute(F"""SELECT * FROM posts WHERE id= {str(post_id)}""")
     #test_post = cursor.fetchone()
     #test_post = db.query(models.Post).get(post_id)
@@ -56,6 +66,9 @@ async def get_post(post_id: int, response: Response,db: Session = Depends(get_db
 # post end point to delete a post
 @router.delete("/{post_id}",status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(post_id:int,db: Session=Depends(get_db),current_user: dict = Depends(oauth2.get_current_user)):
+    """
+    Delete a post
+    """
     #cursor.execute(F"""SELECT * FROM posts WHERE id={str(post_id)}""")
     #post = cursor.fetchone()
     post_query = db.query(models.Post).filter(models.Post.id == post_id)
@@ -75,6 +88,9 @@ async def delete_post(post_id:int,db: Session=Depends(get_db),current_user: dict
 # put endpoint to update a post
 @router.put("/{post_id}",response_model=schemas.PostResponse)
 async def update_post(post_id:int,post:schemas.PostCreate,db:Session=Depends(get_db),current_user: dict = Depends(oauth2.get_current_user)):
+    """
+    Update a post
+    """
     #cursor.execute(F"""SELECT * FROM posts WHERE id={str(post_id)}""")
     #update_post = cursor.fetchone()
     post_query = db.query(models.Post).filter(models.Post.id==post_id)
