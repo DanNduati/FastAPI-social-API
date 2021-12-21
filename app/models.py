@@ -34,4 +34,5 @@ class Vote(Base):
 class Mtest(Base):
     __tablename__ = "mtest"
     id = Column(Integer,primary_key=True,index=True)
-    email = Column(String,unique=True,nullable=False)    
+    email = Column(String,unique=True,nullable=False)
+    password = Column(String,nullable=False)
