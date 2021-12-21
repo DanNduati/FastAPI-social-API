@@ -29,3 +29,9 @@ class Vote(Base):
     __tablename__ = "votes"
     user_id = Column(Integer,ForeignKey("users.id",ondelete="CASCADE"),primary_key=True)
     post_id = Column(Integer,ForeignKey("posts.id",ondelete="CASCADE"),primary_key=True)
+
+#dummy table to test out comparision of database and models
+class Mtest(Base):
+    __tablename__ = "mtest"
+    id = Column(Integer,primary_key=True,index=True)
+    email = Column(String,unique=True,nullable=False)    
