@@ -9,7 +9,7 @@ click==8.0.3
 contextlib2==21.6.0
 contextvars==2.4
 cryptography==36.0.0
-dataclasses==0.8
+dataclasses==0.6
 dnspython==2.1.0
 ecdsa==0.17.0
 email-validator==1.1.3
