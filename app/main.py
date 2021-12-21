@@ -9,7 +9,18 @@ from .routers import posts, users, auth, votes
 models.Base.metadata.create_all(bind=engine)
 
 # aplication instance
-app = FastAPI()
+app = FastAPI(
+    title="FastAPI Social App API",
+    description=(
+        "FastAPI learning project"
+    ),
+    version="0.0.1",
+    docs_url="/",
+    contact={
+        "name": "Nduati Daniel Chege",
+        "url": "https://github.com/DanNduati",
+    }
+)
 
 origins = ["*"]
 
@@ -26,9 +37,3 @@ app.include_router(posts.router)
 app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(votes.router)
-
-#root 
-@app.get("/")
-async def root():
-    message = "Hello am learning FastAPI!!"
-    return{"message":f"{message}"}
