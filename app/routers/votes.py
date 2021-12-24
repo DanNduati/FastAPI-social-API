@@ -13,7 +13,7 @@ router = APIRouter(
 @router.post("/",status_code=status.HTTP_201_CREATED)
 async def vote(vote:schemas.Vote,db: Session = Depends(get_db),current_user:dict = Depends(oauth2.get_current_user)):
     """
-    Vote for post by its id, vote direction: 1 -> upvote/like 0-> delete upvote/like
+    Vote for post by its id, vote direction: 1 -> upvote/like 0-> delete downvote/removelike
     """
     #check whether the post exists
     found_post = db.query(models.Post).filter(models.Post.id == vote.post_id).first()
